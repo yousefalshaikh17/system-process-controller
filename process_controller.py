@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 import time
 import psutil
@@ -16,12 +16,15 @@ class ProcessController():
         Parameters:
         - process (psutil.Process): The psutil Process object to manage.
         """
+        if not isinstance(process, psutil.Process):
+            raise TypeError("The process must be an instance of psutil.Process")
+        
         # Only PID and create time are stored for memory-efficiency.
         self.pid = process.pid
         self.create_time = process.create_time()
         
     @staticmethod
-    def find_processes(filters=None) -> list['ProcessController']:
+    def find_processes(filters: Optional[dict[str, Union[float | str]]]=None) -> list['ProcessController']:
         """
         Finds and returns a list of ProcessController instances matching the provided filters.
         
@@ -33,23 +36,24 @@ class ProcessController():
             - 'cwd' (str): The current working directory of the process (e.g., 'D:/server').
             - 'username' (str): The username under which the process is running (e.g., 'admin').
             - 'create_time' (float): The creation time of the process (seconds since epoch).
+            - 'cmdline' (list[str]): The list of command line arguments of the process.
         
         Returns:
         - List of Process objects matching the criteria.
 
         """
-        if not isinstance(process, psutil.Process):
-            raise TypeError("The process must be an instance of psutil.Process")
-
+        if filters is not None and not isinstance(filters, dict):
+            raise TypeError("The filters must be a dictionary")
+        
         if filters is None:
             filters = {}
 
-        processes = []
         
+
+        processes = []
         # Iterate through all processes
-        for process in psutil.process_iter(['pid', 'name', 'cwd', 'username', 'create_time']):
+        for process in psutil.process_iter(['pid', 'name', 'cwd', 'username', 'create_time', 'cmdline']):
             match = True
-            
             # Check each key-value pair in the filters
             for key, value in filters.items():
                 if key not in process.info or process.info[key] != value:
