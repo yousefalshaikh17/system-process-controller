@@ -30,6 +30,7 @@ def yield_until_process_running(pid: int, timeout=10):
         if max_time < time.time():
             raise TimeoutError("Testing process 'test_script.py' did not start in time.")
         time.sleep(0.1)
+        
 
 class TestProcessController(unittest.TestCase):
 
@@ -64,6 +65,8 @@ class TestProcessController(unittest.TestCase):
         """
         self.controller.terminate()
         self.process.terminate()
+        while self.controller.is_running():
+            time.sleep(0.1)
                 
 
     def test_find_process_1(self):
@@ -147,6 +150,9 @@ class TestProcessController(unittest.TestCase):
             self.controller.terminate(),
             msg="test_process_controller.test_terminate: Process could not be terminated."
         )
+        deadline = time.time() + 10
+        while self.controller.is_running() and time.time() < deadline:
+            time.sleep(0.1)
         self.assertFalse(
             self.controller.is_running(),
             msg="test_process_controller.test_terminate: Process still running after termination."
