@@ -1,10 +1,12 @@
 from setuptools import setup, find_packages
 
-from process_controller import __version__
+def read_version():
+    with open("process_controller/version.txt", "r") as f:
+        return f.read().strip()
 
 setup(
     name="process-controller",
-    version=__version__,
+    version=read_version(),
     install_requires=[
         "psutil"
     ],
