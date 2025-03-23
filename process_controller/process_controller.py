@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 import time
 import psutil
 import threading
@@ -9,7 +7,7 @@ class ProcessController():
     A class to manage and monitor system processes.
     """
 
-    def __init__(self, process: psutil.Process):
+    def __init__(self, process):
         """
         Initializes the ProcessController with a given psutil Process object.
 
@@ -24,7 +22,7 @@ class ProcessController():
         self.create_time = process.create_time()
         
     @staticmethod
-    def find_processes(filters: Optional[dict[str, Union[float | str]]]=None) -> list['ProcessController']:
+    def find_processes(filters=None):
         """
         Finds and returns a list of ProcessController instances matching the provided filters.
         
@@ -48,8 +46,6 @@ class ProcessController():
         if filters is None:
             filters = {}
 
-        
-
         processes = []
         # Iterate through all processes
         for process in psutil.process_iter(['pid', 'name', 'cwd', 'username', 'create_time', 'cmdline']):
@@ -65,13 +61,13 @@ class ProcessController():
         
         return processes
     
-    def get_runtime(self) -> float:
+    def get_runtime(self):
         """
         Returns the time (in seconds) since the process was created.
         """
         return time.time() - self.create_time
     
-    def get_process(self) -> Optional[psutil.Process]:
+    def get_process(self):
         """
         Returns the psutil Process object or None if unavailable.
         """
@@ -86,14 +82,14 @@ class ProcessController():
             print(f"Access denied to process with PID: {self.pid}")
         return None
 
-    def is_running(self) -> bool:
+    def is_running(self):
         """
         Returns whether the process is running.
         """
         process = self.get_process()
         return process is not None and process.is_running()
     
-    def get_cpu_usage(self, interval=0.1) -> Optional[float]:
+    def get_cpu_usage(self, interval=0.1):
         """
         Returns process CPU usage percentage (averaged over `interval`).
         """
@@ -103,14 +99,14 @@ class ProcessController():
         process = self.get_process()
         return process.cpu_percent(interval=interval) if process else None
 
-    def get_memory_usage_mb(self) -> Optional[float]:
+    def get_memory_usage_mb(self):
         """
         Returns the process memory usage in MB.
         """
         process = self.get_process()
         return round(process.memory_info().rss / (1024 * 1024), 2) if process else None
     
-    def close(self)-> bool:
+    def close(self):
         """
         Attempts to terminate the process safely.
         """
@@ -125,13 +121,13 @@ class ProcessController():
                 print(f"An error occurred: {e}")
         return False
     
-    def terminate(self) -> bool:
+    def terminate(self):
         """
         Wrapper method around close to terminate the process safely.
         """
         return self.close()
     
-    def terminate_after(self, delay, daemon=False) -> None:
+    def terminate_after(self, delay, daemon=False):
         """
         Schedules the process for termination after a specified delay.
 
@@ -152,7 +148,7 @@ class ProcessController():
         thread = threading.Thread(target=delayed_termination, daemon=daemon)
         thread.start()
 
-    def restart(self) -> bool:
+    def restart(self):
         """
         Restarts the process if it is running, terminating and then starting a new instance with the same command line and working directory.
         """
