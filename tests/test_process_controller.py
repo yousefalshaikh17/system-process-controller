@@ -57,7 +57,7 @@ class TestProcessController(unittest.TestCase):
     
         # Create a ProcessController instance for the new process
         process = psutil.Process(self.process.pid)
-        self.controller = ProcessController(process)
+        self.controller = ProcessController.from_process(process)
 
     def tearDown(self):
         """

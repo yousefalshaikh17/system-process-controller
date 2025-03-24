@@ -1,1 +1,2 @@
-from .process_controller import ProcessController
+from .controller import ProcessController
+__all__ = ["ProcessController"]

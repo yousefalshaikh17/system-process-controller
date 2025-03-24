@@ -3,13 +3,19 @@ from typing import Optional, Union
 import time
 import psutil
 import threading
+import subprocess
 
 class ProcessController():
     """
     A class to manage and monitor system processes.
     """
 
-    def __init__(self, process: psutil.Process):
+    def __init__(self, pid: int, create_time: float):
+        self.pid = pid
+        self.create_time = create_time
+
+    @staticmethod
+    def from_process(process: psutil.Process):
         """
         Initializes the ProcessController with a given psutil Process object.
 
@@ -20,8 +26,7 @@ class ProcessController():
             raise TypeError("The process must be an instance of psutil.Process")
         
         # Only PID and create time are stored for memory-efficiency.
-        self.pid = process.pid
-        self.create_time = process.create_time()
+        return ProcessController(process.pid, process.create_time())
         
     @staticmethod
     def find_processes(filters: Optional[dict[str, Union[float | str]]]=None) -> list['ProcessController']:
@@ -61,7 +66,7 @@ class ProcessController():
                     break
 
             if match:
-                processes.append(ProcessController(process))
+                processes.append(ProcessController.from_process(process))
         
         return processes
     

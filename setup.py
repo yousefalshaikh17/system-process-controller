@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="processcontroller",
+    name="process-controller",
     version="0.4",
     packages=find_packages(),
     install_requires=[
