@@ -6,7 +6,7 @@ import sys
 import subprocess
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from process_controller import ProcessController
+from process_controller.process_controller import ProcessController
 
 data_folder = os.path.join(os.path.dirname(__file__), 'data')
 
