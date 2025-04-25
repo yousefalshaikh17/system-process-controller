@@ -32,38 +32,44 @@ class ProcessController():
         Finds and returns a list of ProcessController instances matching the provided filters.
         
         Parameters:
-        - filters (dict?): A dictionary containing filter criteria as key-value pairs.
-          The available filter keys are:
-            - 'pid' (int): The process ID (PID) to filter by.
-            - 'name' (str): The name of the executable for the process (e.g., 'python.exe').
-            - 'cwd' (str): The current working directory of the process (e.g., 'D:/server').
-            - 'username' (str): The username under which the process is running (e.g., 'admin').
-            - 'create_time' (float): The creation time of the process (seconds since epoch).
-            - 'cmdline' (list[str]): The list of command line arguments of the process.
+        - filters (dict or callable, optional): Filter criteria to match processes. This can be either:
+  
+        1. A dictionary of exact match filters (key-value pairs).
+        2. A callable that takes a `process.info` dictionary and returns True if the process matches.
+
+        In both cases, the following keys are available for filtering via `process.info`:
+            - 'pid' (int): Process ID.
+            - 'name' (str): Name of the executable (e.g., 'java.exe').
+            - 'cwd' (str): Current working directory (e.g., 'D:/server').
+            - 'username' (str): Username that owns the process.
+            - 'create_time' (float): Time the process was created (in seconds since the epoch).
+            - 'cmdline' (list[str]): Full command-line arguments used to launch the process.
         
         Returns:
         - List of Process objects matching the criteria.
 
         """
-        if filters is not None and not isinstance(filters, dict):
-            raise TypeError("The filters must be a dictionary")
-        
         if filters is None:
-            filters = {}
+            filters = lambda _: True
+        elif isinstance(filters, dict):
+            filter_dict = filters
+            def dict_filter(info):
+                for key, value in filter_dict.items():
+                    if key not in info or info[key] != value:
+                        return False
+                return True
+            filters = dict_filter
+        elif not callable(filters):
+            raise TypeError("filters must be a dict or a callable")
 
         processes = []
-        # Iterate through all processes
         for process in psutil.process_iter(['pid', 'name', 'cwd', 'username', 'create_time', 'cmdline']):
-            match = True
-            # Check each key-value pair in the filters
-            for key, value in filters.items():
-                if key not in process.info or process.info[key] != value:
-                    match = False
-                    break
-
-            if match:
-                processes.append(ProcessController.from_process(process))
-        
+            if filters(process.info):
+                try:
+                    processes.append(ProcessController.from_process(process))
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            
         return processes
     
     def get_runtime(self):
