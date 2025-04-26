@@ -178,22 +178,15 @@ class ProcessController():
                 # Store cmdline before termination
                 cmdline = process.cmdline()
                 cwd = process.cwd()
-
-                # If the process stopped before the restart, cancel restart attempt.
-                if not process.is_running():
-                    return False
                 
                 self.terminate()
-                
-                # Wait for thread to die
-                while self.is_running():
-                    time.sleep(0.1)
 
                 # Start thread
                 new_process = psutil.Popen(cmdline, cwd=cwd)
                 self.pid = new_process.pid
-                self.create_time = new_process.create_time
-                return True
+                self.create_time = new_process.create_time()
+                return new_process
             except Exception as e:
                 print(f"Error restarting process {self.pid}: {e}")
-        return False
+        
+        return None
