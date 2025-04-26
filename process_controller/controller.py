@@ -98,7 +98,7 @@ class ProcessController():
         Returns whether the process is running.
         """
         process = self.get_process()
-        return process is not None and process.is_running()
+        return process is not None and process.is_running() and process.status() != psutil.STATUS_ZOMBIE
     
     def get_cpu_usage(self, interval=0.1):
         """
@@ -124,13 +124,18 @@ class ProcessController():
         process = self.get_process()
         if process is not None:
             try:
-               process.terminate()
-               return True
+                process.terminate()
+                process.wait(timeout=5)
             except psutil.NoSuchProcess:
                 return True
-            except (psutil.AccessDenied, psutil.TimeoutExpired, psutil.ZombieProcess, psutil.Error) as e:
+            except psutil.TimeoutExpired:
+                process.kill()
+                process.wait()
+            except (psutil.AccessDenied, psutil.ZombieProcess, psutil.Error) as e:
                 print(f"An error occurred: {e}")
-        return False
+                return False
+            
+        return True
     
     def terminate(self):
         """
@@ -161,8 +166,12 @@ class ProcessController():
 
     def restart(self):
         """
-        Restarts the process if it is running, terminating and then starting a new instance with the same command line and working directory.
+        Restarts the process if it is running, terminating and then starting a new instance with the same command line and working directory. Returns the new process or None.
         """
+        # If the process stopped before the restart, cancel restart attempt.
+        if not self.is_running():
+            return None
+
         process = self.get_process()
         if process:
             try:
