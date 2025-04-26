@@ -129,7 +129,9 @@ class ProcessController():
                 return True
             except psutil.TimeoutExpired:
                 process.kill()
-                process.wait()
+                # At this point, if the status isnt zombie, we return false. Otherwise, a zombie process is still a stopped process.
+                if process.status() != psutil.STATUS_ZOMBIE:
+                    return False
             except (psutil.AccessDenied, psutil.ZombieProcess, psutil.Error) as e:
                 print(f"An error occurred: {e}")
                 return False

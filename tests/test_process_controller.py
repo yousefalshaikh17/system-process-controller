@@ -69,7 +69,6 @@ class TestProcessController(unittest.TestCase):
                     process.wait(timeout=5)
                 except psutil.TimeoutExpired:
                     process.kill()
-                    process.wait()
 
             # This is an extra measure to clean up POpen references (Also helps silence early warnings)
             process.__exit__(None, None, None)
