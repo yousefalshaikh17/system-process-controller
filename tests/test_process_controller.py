@@ -2,8 +2,6 @@ import unittest
 import psutil
 import time
 import os
-import sys
-import subprocess
 
 from process_controller import ProcessController
 

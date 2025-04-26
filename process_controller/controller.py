@@ -1,7 +1,6 @@
 import time
 import psutil
 import threading
-import subprocess
 
 class ProcessController():
     """
