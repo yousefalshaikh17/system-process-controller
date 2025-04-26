@@ -2,10 +2,7 @@ import unittest
 import psutil
 import time
 import os
-import sys
-import subprocess
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from process_controller import ProcessController
 
 data_folder = os.path.join(os.path.dirname(__file__), 'data')
@@ -45,43 +42,50 @@ class TestProcessController(unittest.TestCase):
         for process in psutil.process_iter(['cwd']):
             if process.cwd == data_folder:
                 process.kill()
-
-
-        self.process = subprocess.Popen(
+                process.wait()
+        
+        self.process = psutil.Popen(
             self.cmdline,
-            cwd=data_folder,
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.PIPE, 
-            )
+            cwd=data_folder
+        )
+
+        self.processes = [self.process]
+
         yield_until_process_running(self.process.pid)
-    
-        # Create a ProcessController instance for the new process
-        process = psutil.Process(self.process.pid)
-        self.controller = ProcessController.from_process(process)
+
+        self.controller = ProcessController.from_process(self.process)
 
     def tearDown(self):
         """
-        Terminate the process after each test.
+        Terminate the processes after each test.
         """
-        self.controller.terminate()
-        self.process.terminate()
-        while self.controller.is_running():
-            time.sleep(0.1)
+        
+        for process in self.processes:
+            if process.is_running() and process.status() != psutil.STATUS_ZOMBIE:
                 
+                process.terminate()
+                # Ensure the process exits
+                try:
+                    process.wait(timeout=5)
+                except psutil.TimeoutExpired:
+                    process.kill()
+                    process.wait()
 
+            # This is an extra measure to clean up POpen references (Also helps silence early warnings)
+            process.__exit__(None, None, None)
+    
     def test_find_process_1(self):
         """
         Test to verify that the ProcessController can correctly find the running process based on filter parameters.
         """
         filter = {
-            'name': 'python.exe',
             'cmdline': self.cmdline 
         }
 
         process_controllers = ProcessController.find_processes(filter)
         self.assertTrue(
             any([process.pid == self.process.pid for process in process_controllers]),
-            msg="test_process_controller.test_find_process_1: Process was not found with the filter name='python.exe' and cmdline."
+            msg="test_process_controller.test_find_process_1: Process was not found with the filter name='python' and cmdline."
         )
 
     def test_find_process_2(self):
@@ -165,9 +169,15 @@ class TestProcessController(unittest.TestCase):
         initial_pid = self.controller.pid
         initial_create_time = self.controller.create_time
         
+        # This is added to allow create_time to differ from the setup process.
+        time.sleep(0.1)
+
         # Restart the process
-        self.assertTrue(
-            self.controller.restart(),
+        new_process = self.controller.restart()
+        self.processes.append(new_process)
+
+        self.assertIsNotNone(
+            new_process,
             msg="test_process_controller.test_restart: Process could not be restarted."
         )
 
