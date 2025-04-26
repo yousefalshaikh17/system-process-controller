@@ -24,16 +24,26 @@ This tool uses the `psutil` library to interface with system processes and provi
 
 ## **Installation**
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yousefalshaikh17/system-process-controller.git
-   cd system-process-controller
-   ```
+You can install the package with this command.
 
-2. Install dependencies using `pip`:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+pip install git+https://github.com/yousefalshaikh17/system-process-controller.git
+```
+
+### OR
+
+Clone and install the package manually.
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yousefalshaikh17/system-process-controller.git
+cd system-process-controller
+```
+
+2. Install the package using `pip`:
+```bash
+pip install .
+```
 
 ## **Usage**
 
