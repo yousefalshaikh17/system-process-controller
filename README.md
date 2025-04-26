@@ -110,8 +110,6 @@ The tests cover the following methods:
 - **`test_terminate`**: Verifies the termination of a process.
 - **`test_restart`**: Verifies the restarting of a process.
 
-Disclaimer: Currently, the unit testing workflow only works on Windows. This is due to subprocess complications with Docker that will be resolved at a later date. If you have a solution, feel free to attempt it and contribute.
-
 ## **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
