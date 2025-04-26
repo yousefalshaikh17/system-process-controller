@@ -80,8 +80,10 @@ controller.terminate()
 You can filter processes by various criteria using the `find_processes` static method:
 
 ```python
-filters = {'name': 'python.exe'}
-process_controllers = ProcessController.find_processes(filters)
+# This sample filters processes by whether they have python in their name
+def filter(info: dict):
+   return 'python' in info['name'].lower()
+process_controllers = ProcessController.find_processes(filter)
 
 for process_controller in process_controllers:
     print(process_controller.pid)
@@ -94,7 +96,7 @@ for process_controller in process_controllers:
 - **`terminate()`**: Gracefully terminates the process.
 - **`terminate_after(delay)`**: Schedules the termination of the process after a delay (in seconds).
 - **`restart()`**: Restarts the process (by terminating it and starting a new instance with the same command line). (Not recommended)
-- **`find_processes(filters)`**: Finds processes matching the filters (`pid`, `name`, `cmdline`, etc.).
+- **`find_processes(filters)`**: Finds processes matching the callable filters (`pid`, `name`, `cmdline`, etc.).
 
 ## **Testing**
 
